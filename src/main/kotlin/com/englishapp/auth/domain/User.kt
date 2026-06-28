@@ -17,6 +17,10 @@ class User(
     @Column(name = "password_hash", nullable = false)
     var passwordHash: String,
 
+    // RBAC: 'USER' por padrão, 'ADMIN' para administração. var pois pode ser promovido.
+    @Column(nullable = false)
+    var role: String = "USER",
+
     @Column(name = "google_id", unique = true)
     val googleId: String? = null,
 

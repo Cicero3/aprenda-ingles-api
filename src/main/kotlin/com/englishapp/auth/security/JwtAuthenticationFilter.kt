@@ -33,7 +33,7 @@ class JwtAuthenticationFilter(
                 val user = userRepository.findById(userId).orElse(null)
 
                 if (user != null) {
-                    val principal = UserPrincipal(user.id, user.email)
+                    val principal = UserPrincipal(user.id, user.email, user.role)
                     val authentication = UsernamePasswordAuthenticationToken(
                         principal, null, principal.authorities
                     )

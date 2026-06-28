@@ -31,12 +31,15 @@ abstract class AbstractIntegrationTest {
             registry.add("spring.datasource.username") { postgres.username }
             registry.add("spring.datasource.password") { postgres.password }
             registry.add("spring.flyway.enabled") { true }
-            registry.add("spring.flyway.locations") { "classpath:db/migration" }
+            // Inclui db/seed para os testes terem o conteúdo do Módulo 1 (como em dev).
+            registry.add("spring.flyway.locations") { "classpath:db/migration,classpath:db/seed" }
             registry.add("spring.data.redis.host") { redis.host }
             registry.add("spring.data.redis.port") { redis.firstMappedPort }
             registry.add("jwt.secret") { "test-secret-that-is-at-least-256-bits-long-xxxxxxxxxxxxxxx" }
             registry.add("jwt.expiration-ms") { 3600000L }
             registry.add("jwt.issuer") { "english-app-test" }
+            // Desliga rate limiting nos ITs (vários register/login do mesmo IP estourariam o limite).
+            registry.add("security.rate-limit.auth.enabled") { false }
         }
     }
 }

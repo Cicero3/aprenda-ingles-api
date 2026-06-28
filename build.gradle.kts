@@ -45,6 +45,9 @@ dependencies {
 
     // ===== JSONB (Hibernate 6.3 / Spring Boot 3.3) =====
     implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.3")
+
+    // ===== Rate limiting (login/register brute-force) =====
+    implementation("com.bucket4j:bucket4j-core:8.7.0")
     
     // ===== JWT (JJWT 0.12.x) =====
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")

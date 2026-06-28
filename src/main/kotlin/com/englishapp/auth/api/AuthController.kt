@@ -26,7 +26,7 @@ class AuthController(
         @Valid @RequestBody request: RegisterRequest
     ): ResponseEntity<ApiResponse<AuthResponse>> {
         val user = registerUserUseCase.execute(request.email, request.password)
-        val token = jwtTokenProvider.generateToken(user.id, user.email)
+        val token = jwtTokenProvider.generateToken(user.id, user.email, user.role)
 
         val response = AuthResponse(
             userId = user.id.toString(),
@@ -44,7 +44,7 @@ class AuthController(
         @Valid @RequestBody request: LoginRequest
     ): ResponseEntity<ApiResponse<AuthResponse>> {
         val user = loginUserUseCase.execute(request.email, request.password)
-        val token = jwtTokenProvider.generateToken(user.id, user.email)
+        val token = jwtTokenProvider.generateToken(user.id, user.email, user.role)
 
         val response = AuthResponse(
             userId = user.id.toString(),
