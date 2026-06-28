@@ -1,0 +1,16 @@
+# Normaliza fins de linha. Texto = auto, mas força LF onde o runtime exige.
+* text=auto
+
+# Scripts Unix precisam de LF (gradlew roda no runner Linux do CI)
+*.sh    text eol=lf
+gradlew text eol=lf
+
+# Scripts Windows precisam de CRLF
+*.bat       text eol=crlf
+gradlew.bat text eol=crlf
+
+# Binários
+*.jar binary
+*.mp3 binary
+*.png binary
+*.jpg binary
