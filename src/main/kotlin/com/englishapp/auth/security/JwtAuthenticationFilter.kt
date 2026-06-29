@@ -1,5 +1,6 @@
 package com.englishapp.auth.security
 
+import com.englishapp.auth.infrastructure.TokenDenylist
 import com.englishapp.auth.infrastructure.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -14,7 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val tokenDenylist: TokenDenylist
 ) : OncePerRequestFilter() {
 
     companion object {
@@ -28,7 +30,12 @@ class JwtAuthenticationFilter(
     ) {
         try {
             val token = resolveToken(request)
-            if (token != null && jwtTokenProvider.validateToken(token)) {
+            val jti = if (token != null && jwtTokenProvider.validateToken(token)) {
+                jwtTokenProvider.extractJti(token)
+            } else null
+
+            // Token válido e não revogado (logout) -> autentica.
+            if (token != null && jti != null && !tokenDenylist.isDenylisted(jti)) {
                 val userId = jwtTokenProvider.extractUserId(token)
                 val user = userRepository.findById(userId).orElse(null)
 

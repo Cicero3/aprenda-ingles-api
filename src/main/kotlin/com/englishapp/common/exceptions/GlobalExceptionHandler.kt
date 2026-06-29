@@ -32,6 +32,23 @@ class GlobalExceptionHandler {
         )
     }
 
+    @ExceptionHandler(UnauthorizedException::class)
+    fun handleUnauthorized(
+        ex: UnauthorizedException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        logger.warn("Unauthorized at ${request.requestURI}: ${ex.message}")
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            ErrorResponse(
+                error = ErrorResponse.ErrorDetail(
+                    code = "UNAUTHORIZED",
+                    message = ex.message ?: "Não autorizado",
+                    path = request.requestURI
+                )
+            )
+        )
+    }
+
     @ExceptionHandler(EntityNotFoundException::class)
     fun handleNotFound(
         ex: EntityNotFoundException,

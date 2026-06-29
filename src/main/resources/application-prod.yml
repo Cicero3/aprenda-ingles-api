@@ -41,9 +41,9 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration-ms: 3600000          # 1 hora (mais seguro que dev)
+  expiration-ms: 900000           # access token: 15 min (curto; refresh assume o long-lived)
   issuer: english-app
-  refresh-token-expiration-ms: 604800000
+  refresh-token-expiration-ms: 604800000   # refresh token: 7 dias
 
 # CORS: em produção, origens só vêm de env (fail-closed — vazio bloqueia cross-origin).
 app:

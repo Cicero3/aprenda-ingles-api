@@ -23,6 +23,7 @@ class JwtTokenProvider(
         val expiry = now.plusMillis(jwtProperties.expirationMs)
 
         return Jwts.builder()
+            .id(UUID.randomUUID().toString()) // jti: identifica o token p/ denylist (logout)
             .subject(userId.toString())
             .claim("email", email)
             .claim("role", role)
@@ -53,6 +54,14 @@ class JwtTokenProvider(
 
     fun extractRole(token: String): String {
         return parseClaims(token).get("role", String::class.java) ?: "USER"
+    }
+
+    fun extractJti(token: String): String? = parseClaims(token).id
+
+    /** Milissegundos restantes até o token expirar (>= 0). Usado como TTL da denylist. */
+    fun remainingMillis(token: String): Long {
+        val exp = parseClaims(token).expiration?.toInstant() ?: return 0
+        return (exp.toEpochMilli() - Instant.now().toEpochMilli()).coerceAtLeast(0)
     }
 
     private fun parseClaims(token: String) =
