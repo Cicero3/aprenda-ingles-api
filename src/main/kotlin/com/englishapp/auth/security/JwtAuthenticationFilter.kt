@@ -32,7 +32,8 @@ class JwtAuthenticationFilter(
                 val userId = jwtTokenProvider.extractUserId(token)
                 val user = userRepository.findById(userId).orElse(null)
 
-                if (user != null) {
+                // Conta anonimizada/excluída (LGPD) não autentica, mesmo com token válido.
+                if (user != null && user.deletedAt == null) {
                     val principal = UserPrincipal(user.id, user.email, user.role)
                     val authentication = UsernamePasswordAuthenticationToken(
                         principal, null, principal.authorities

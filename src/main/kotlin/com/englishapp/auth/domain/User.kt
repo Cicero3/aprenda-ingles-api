@@ -11,8 +11,9 @@ class User(
     @Column(columnDefinition = "uuid")
     val id: UUID = UUID.randomUUID(),
 
+    // var: pode ser anonimizado no exercício do direito ao apagamento (LGPD Art. 18).
     @Column(nullable = false, unique = true)
-    val email: String,
+    var email: String,
 
     @Column(name = "password_hash", nullable = false)
     var passwordHash: String,
@@ -22,7 +23,7 @@ class User(
     var role: String = "USER",
 
     @Column(name = "google_id", unique = true)
-    val googleId: String? = null,
+    var googleId: String? = null,
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now(),
@@ -31,5 +32,5 @@ class User(
     var updatedAt: Instant = Instant.now(),
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null
+    var deletedAt: Instant? = null
 )

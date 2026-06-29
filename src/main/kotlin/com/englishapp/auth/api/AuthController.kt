@@ -25,7 +25,7 @@ class AuthController(
     fun register(
         @Valid @RequestBody request: RegisterRequest
     ): ResponseEntity<ApiResponse<AuthResponse>> {
-        val user = registerUserUseCase.execute(request.email, request.password)
+        val user = registerUserUseCase.execute(request.email, request.password, request.acceptedTerms)
         val token = jwtTokenProvider.generateToken(user.id, user.email, user.role)
 
         val response = AuthResponse(

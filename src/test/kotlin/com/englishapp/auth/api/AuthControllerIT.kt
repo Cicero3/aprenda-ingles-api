@@ -27,7 +27,8 @@ class AuthControllerIT : AbstractIntegrationTest() {
     fun `should register user successfully`() {
         val request = RegisterRequest(
             email = "new-user-${java.util.UUID.randomUUID()}@test.com",
-            password = "test-user-password-2024"
+            password = "test-user-password-2024",
+            acceptedTerms = true
         )
 
         mockMvc.perform(
@@ -44,7 +45,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
     @Test
     fun `should reject duplicate email`() {
         val email = "duplicate-${java.util.UUID.randomUUID()}@test.com"
-        val request = RegisterRequest(email = email, password = "test-user-password-2024")
+        val request = RegisterRequest(email = email, password = "test-user-password-2024", acceptedTerms = true)
 
         mockMvc.perform(
             post("/api/v1/auth/register")
@@ -67,7 +68,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
         mockMvc.perform(
             post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequest(email, password)))
+                .content(objectMapper.writeValueAsString(RegisterRequest(email, password, acceptedTerms = true)))
         )
 
         mockMvc.perform(
@@ -98,7 +99,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
         val registerResult = mockMvc.perform(
             post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequest(email, password)))
+                .content(objectMapper.writeValueAsString(RegisterRequest(email, password, acceptedTerms = true)))
         ).andReturn()
 
         val responseBody = registerResult.response.contentAsString
