@@ -45,6 +45,11 @@ jwt:
   issuer: english-app
   refresh-token-expiration-ms: 604800000
 
+# CORS: em produção, origens só vêm de env (fail-closed — vazio bloqueia cross-origin).
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+
 server:
   port: ${PORT:8080}
   error:

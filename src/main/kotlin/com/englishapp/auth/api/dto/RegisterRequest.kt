@@ -10,6 +10,6 @@ data class RegisterRequest(
     val email: String,
 
     @field:NotBlank(message = "Senha é obrigatória")
-    @field:Size(min = 8, message = "Senha deve ter pelo menos 8 caracteres")
+    @field:Size(min = 12, max = 128, message = "Senha deve ter entre 12 e 128 caracteres")
     val password: String
 )

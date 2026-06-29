@@ -32,7 +32,7 @@ class CurriculumProgressFlowIT : AbstractIntegrationTest() {
         val result = mockMvc.perform(
             post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequest(email, "password123")))
+                .content(objectMapper.writeValueAsString(RegisterRequest(email, "test-user-password-2024")))
         ).andExpect(status().isCreated).andReturn()
         return objectMapper.readTree(result.response.contentAsString)
             .get("data").get("accessToken").asText()

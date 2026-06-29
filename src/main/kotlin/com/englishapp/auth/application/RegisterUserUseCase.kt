@@ -5,6 +5,7 @@ import com.englishapp.auth.domain.UserProfile
 import com.englishapp.auth.infrastructure.UserProfileRepository
 import com.englishapp.auth.infrastructure.UserRepository
 import com.englishapp.common.util.PasswordHasher
+import com.englishapp.common.util.PasswordPolicy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional
 class RegisterUserUseCase(
     private val userRepository: UserRepository,
     private val userProfileRepository: UserProfileRepository,
-    private val passwordHasher: PasswordHasher
+    private val passwordHasher: PasswordHasher,
+    private val passwordPolicy: PasswordPolicy
 ) {
     @Transactional
     fun execute(email: String, password: String): User {
@@ -22,9 +24,7 @@ class RegisterUserUseCase(
             throw IllegalArgumentException("Email já registrado")
         }
 
-        if (password.length < 8) {
-            throw IllegalArgumentException("Senha deve ter pelo menos 8 caracteres")
-        }
+        passwordPolicy.validate(password)
 
         val user = User(
             email = normalizedEmail,

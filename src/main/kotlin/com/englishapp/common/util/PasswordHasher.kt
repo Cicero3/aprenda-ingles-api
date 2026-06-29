@@ -5,7 +5,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class PasswordHasher {
-    private val encoder = BCryptPasswordEncoder(10)
+    // Cost 12: ~250ms por hash, mais resistente a brute-force offline que o 10.
+    private val encoder = BCryptPasswordEncoder(12)
 
     fun hash(rawPassword: String): String = encoder.encode(rawPassword)
 

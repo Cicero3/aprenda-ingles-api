@@ -27,7 +27,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
     fun `should register user successfully`() {
         val request = RegisterRequest(
             email = "new-user-${System.currentTimeMillis()}@test.com",
-            password = "password123"
+            password = "test-user-password-2024"
         )
 
         mockMvc.perform(
@@ -44,7 +44,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
     @Test
     fun `should reject duplicate email`() {
         val email = "duplicate-${System.currentTimeMillis()}@test.com"
-        val request = RegisterRequest(email = email, password = "password123")
+        val request = RegisterRequest(email = email, password = "test-user-password-2024")
 
         mockMvc.perform(
             post("/api/v1/auth/register")
@@ -62,7 +62,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
     @Test
     fun `should login with valid credentials`() {
         val email = "login-${System.currentTimeMillis()}@test.com"
-        val password = "password123"
+        val password = "test-user-password-2024"
 
         mockMvc.perform(
             post("/api/v1/auth/register")
@@ -93,7 +93,7 @@ class AuthControllerIT : AbstractIntegrationTest() {
     @Test
     fun `should access protected endpoint with valid token`() {
         val email = "protected-${System.currentTimeMillis()}@test.com"
-        val password = "password123"
+        val password = "test-user-password-2024"
 
         val registerResult = mockMvc.perform(
             post("/api/v1/auth/register")
