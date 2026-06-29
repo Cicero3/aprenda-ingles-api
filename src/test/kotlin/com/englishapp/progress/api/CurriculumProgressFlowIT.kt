@@ -28,7 +28,7 @@ class CurriculumProgressFlowIT : AbstractIntegrationTest() {
     private val exTr = "55555555-5555-5555-5555-555555555555"
 
     private fun registerAndGetToken(): String {
-        val email = "learner-${System.currentTimeMillis()}@test.com"
+        val email = "learner-${java.util.UUID.randomUUID()}@test.com"
         val result = mockMvc.perform(
             post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

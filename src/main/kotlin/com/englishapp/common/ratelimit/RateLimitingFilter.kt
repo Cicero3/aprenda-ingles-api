@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class RateLimitingFilter(
     private val rateLimiter: AuthRateLimiter,
     private val objectMapper: ObjectMapper,
-    @Value("\${security.rate-limit.auth.enabled:true}") private val enabled: Boolean = true
+    @Value("\${security.rate-limit.auth.enabled:true}") private val enabled: Boolean
 ) : OncePerRequestFilter() {
 
     private val limitedPaths = setOf("/api/v1/auth/login", "/api/v1/auth/register")

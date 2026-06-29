@@ -40,6 +40,8 @@ abstract class AbstractIntegrationTest {
             registry.add("jwt.issuer") { "english-app-test" }
             // Desliga rate limiting nos ITs (vários register/login do mesmo IP estourariam o limite).
             registry.add("security.rate-limit.auth.enabled") { false }
+            // Cinto e suspensório: mesmo se o flag acima não pegasse, capacidade altíssima não limita.
+            registry.add("security.rate-limit.auth.capacity") { 1_000_000 }
         }
     }
 }

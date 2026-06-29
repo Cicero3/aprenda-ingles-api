@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     id("org.springframework.boot") version "3.3.0"
@@ -82,6 +84,15 @@ tasks.withType<Test> {
     // autodetecção falha (ex.: Docker Desktop no Windows): ./gradlew test -PdockerHost=tcp://localhost:2375
     ((project.findProperty("dockerHost") as String?) ?: System.getenv("DOCKER_HOST"))?.let {
         environment("DOCKER_HOST", it)
+    }
+    // Imprime a mensagem e o stack completo das falhas no console (essencial para CI:
+    // o reporter padrão omite "expected:<201> but was:<...>").
+    testLogging {
+        events(TestLogEvent.FAILED, TestLogEvent.SKIPPED)
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
     }
 }
 
