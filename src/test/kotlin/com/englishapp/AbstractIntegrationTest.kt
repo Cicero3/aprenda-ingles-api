@@ -5,24 +5,32 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
 
-@Testcontainers
+/**
+ * Padrão SINGLETON de container (Testcontainers): os containers sobem UMA vez por JVM
+ * (bloco init) e NÃO são derrubados por classe. Isso é essencial porque o Spring
+ * reaproveita (cacheia) o contexto entre classes de teste — se o container fosse
+ * derrubado ao fim de cada classe (@Testcontainers/@Container), o pool do contexto
+ * cacheado apontaria para um container morto e toda query falharia (500/timeout).
+ * O Ryuk do Testcontainers limpa os containers no encerramento da JVM.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 abstract class AbstractIntegrationTest {
     companion object {
-        @Container
         @JvmStatic
         val postgres: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16-alpine")
             .withDatabaseName("test_db")
             .withUsername("test")
             .withPassword("test")
 
-        @Container
         @JvmStatic
         val redis: GenericContainer<*> = GenericContainer("redis:7-alpine")
             .withExposedPorts(6379)
+
+        init {
+            postgres.start()
+            redis.start()
+        }
 
         @DynamicPropertySource
         @JvmStatic
