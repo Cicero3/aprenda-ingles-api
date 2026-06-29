@@ -93,6 +93,9 @@ tasks.withType<Test> {
         showExceptions = true
         showCauses = true
         showStackTraces = true
+        // Mostra o log do app (Logback) no console: necessário para ver a stack do 500
+        // que o GlobalExceptionHandler registra no servidor durante o teste.
+        showStandardStreams = true
     }
 }
 
