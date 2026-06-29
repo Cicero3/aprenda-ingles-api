@@ -52,6 +52,9 @@ app:
 
 server:
   port: ${PORT:8080}
+  # TLS é terminado no reverse proxy (Caddy/Nginx/ALB). Esta opção faz a app respeitar
+  # X-Forwarded-Proto/Host do proxy -> URLs corretas e HSTS enviado só sob HTTPS real.
+  forward-headers-strategy: framework
   error:
     include-stacktrace: never     # ❌ Nunca expor em produção
     include-message: never
