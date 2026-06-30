@@ -4,6 +4,7 @@ import com.englishapp.auth.api.dto.PersonalDataResponse
 import com.englishapp.auth.application.UserAccountService
 import com.englishapp.auth.security.UserPrincipal
 import com.englishapp.common.dto.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * Endpoints de direitos do titular (LGPD Art. 18) sobre a própria conta.
  */
+@Tag(name = "UserAccount", description = "Direitos do titular sobre a própria conta (LGPD Art. 18)")
 @RestController
 @RequestMapping("/api/v1/users/me")
 class UserAccountController(

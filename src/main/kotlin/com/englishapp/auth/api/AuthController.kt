@@ -12,6 +12,7 @@ import com.englishapp.auth.infrastructure.TokenDenylist
 import com.englishapp.auth.security.JwtTokenProvider
 import com.englishapp.auth.security.UserPrincipal
 import com.englishapp.common.dto.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
+@Tag(name = "Auth", description = "Registro, login, refresh e logout (JWT)")
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(

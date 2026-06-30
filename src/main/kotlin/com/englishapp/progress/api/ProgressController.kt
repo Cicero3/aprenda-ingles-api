@@ -7,6 +7,7 @@ import com.englishapp.progress.api.dto.SubmitAttemptsRequest
 import com.englishapp.progress.api.dto.SubmitAttemptsResponse
 import com.englishapp.progress.application.ProgressQueryService
 import com.englishapp.progress.application.SubmitAttemptsUseCase
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Progress", description = "Submissão de tentativas e dashboard de progresso/XP")
 @RestController
 @RequestMapping("/api/v1")
 class ProgressController(
