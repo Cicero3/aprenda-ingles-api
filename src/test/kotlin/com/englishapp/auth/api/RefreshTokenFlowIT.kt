@@ -2,17 +2,18 @@ package com.englishapp.auth.api
 
 import com.englishapp.AbstractIntegrationTest
 import com.englishapp.auth.api.dto.RegisterRequest
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.servlet.http.Cookie
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @AutoConfigureMockMvc
@@ -21,52 +22,66 @@ class RefreshTokenFlowIT : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var objectMapper: ObjectMapper
 
-    private fun register(): JsonNode {
+    private val cookieName = "refresh_token"
+
+    private fun register(): MvcResult {
         val email = "refresh-${java.util.UUID.randomUUID()}@test.com"
-        val result = mockMvc.perform(
+        return mockMvc.perform(
             post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(RegisterRequest(email, "test-user-password-2024", acceptedTerms = true)))
         ).andExpect(status().isCreated).andReturn()
-        return objectMapper.readTree(result.response.contentAsString).get("data")
     }
 
-    private fun refreshBody(token: String) = """{"refreshToken":"$token"}"""
+    private fun accessTokenOf(result: MvcResult): String =
+        objectMapper.readTree(result.response.contentAsString).get("data").get("accessToken").asText()
+
+    /** Valor do refresh token a partir do header Set-Cookie (cookie httpOnly não é lido por JS). */
+    private fun refreshCookieValue(result: MvcResult): String {
+        val setCookie = result.response.getHeaders("Set-Cookie").first { it.startsWith("$cookieName=") }
+        return setCookie.substringAfter("$cookieName=").substringBefore(";")
+    }
+
+    private fun refreshWith(token: String) =
+        post("/api/v1/auth/refresh").cookie(Cookie(cookieName, token))
 
     @Test
-    fun `register should issue access and refresh tokens`() {
-        val data = register()
-        org.junit.jupiter.api.Assertions.assertTrue(data.get("accessToken").asText().isNotBlank())
-        org.junit.jupiter.api.Assertions.assertTrue(data.get("refreshToken").asText().isNotBlank())
+    fun `register issues access token in body and refresh token in httpOnly cookie`() {
+        val result = register()
+        assertThat(accessTokenOf(result)).isNotBlank()
+        // refresh NÃO vai no corpo
+        assertThat(result.response.contentAsString).doesNotContain("refreshToken")
+        // refresh vai em cookie httpOnly
+        val setCookie = result.response.getHeaders("Set-Cookie").first { it.startsWith("$cookieName=") }
+        assertThat(setCookie).contains("HttpOnly")
+        assertThat(refreshCookieValue(result)).isNotBlank()
     }
 
     @Test
-    fun `refresh should rotate tokens and invalidate the used refresh token`() {
-        val data = register()
-        val refresh1 = data.get("refreshToken").asText()
+    fun `refresh should rotate the cookie and invalidate the used refresh token`() {
+        val refresh1 = refreshCookieValue(register())
 
-        val refreshed = mockMvc.perform(
-            post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON).content(refreshBody(refresh1))
-        ).andExpect(status().isOk).andReturn()
-        val refresh2 = objectMapper.readTree(refreshed.response.contentAsString).get("data").get("refreshToken").asText()
+        val refreshed = mockMvc.perform(refreshWith(refresh1)).andExpect(status().isOk).andReturn()
+        val refresh2 = refreshCookieValue(refreshed)
         assertNotEquals(refresh1, refresh2) // rotacionou
 
         // reusar o refresh token antigo -> 401 (uso único)
-        mockMvc.perform(
-            post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON).content(refreshBody(refresh1))
-        ).andExpect(status().isUnauthorized)
+        mockMvc.perform(refreshWith(refresh1)).andExpect(status().isUnauthorized)
 
         // o novo refresh token ainda funciona
-        mockMvc.perform(
-            post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON).content(refreshBody(refresh2))
-        ).andExpect(status().isOk)
+        mockMvc.perform(refreshWith(refresh2)).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `refresh without cookie is unauthorized`() {
+        mockMvc.perform(post("/api/v1/auth/refresh")).andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `logout should revoke refresh and immediately block the access token`() {
-        val data = register()
-        val access = data.get("accessToken").asText()
-        val refresh = data.get("refreshToken").asText()
+        val result = register()
+        val access = accessTokenOf(result)
+        val refresh = refreshCookieValue(result)
 
         // antes do logout: o access token funciona
         mockMvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer $access"))
@@ -80,8 +95,6 @@ class RefreshTokenFlowIT : AbstractIntegrationTest() {
             .andExpect(status().isForbidden)
 
         // refresh token também foi revogado -> 401
-        mockMvc.perform(
-            post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON).content(refreshBody(refresh))
-        ).andExpect(status().isUnauthorized)
+        mockMvc.perform(refreshWith(refresh)).andExpect(status().isUnauthorized)
     }
 }

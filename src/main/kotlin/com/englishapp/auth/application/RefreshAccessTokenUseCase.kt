@@ -1,6 +1,5 @@
 package com.englishapp.auth.application
 
-import com.englishapp.auth.api.dto.AuthResponse
 import com.englishapp.auth.infrastructure.RefreshTokenStore
 import com.englishapp.auth.infrastructure.UserRepository
 import com.englishapp.auth.security.JwtTokenProvider
@@ -18,7 +17,7 @@ class RefreshAccessTokenUseCase(
      * Lança IllegalArgumentException (401 no handler) se o token for inválido/usado/expirado
      * ou se a conta não existir/estiver excluída.
      */
-    fun execute(rawRefreshToken: String): AuthResponse {
+    fun execute(rawRefreshToken: String): IssuedTokens {
         val userId = refreshTokenStore.consume(rawRefreshToken)
             ?: throw UnauthorizedException("Refresh token inválido ou expirado")
 
@@ -30,7 +29,7 @@ class RefreshAccessTokenUseCase(
         val accessToken = jwtTokenProvider.generateToken(user.id, user.email, user.role)
         val newRefreshToken = refreshTokenStore.issue(user.id)
 
-        return AuthResponse(
+        return IssuedTokens(
             userId = user.id.toString(),
             email = user.email,
             accessToken = accessToken,

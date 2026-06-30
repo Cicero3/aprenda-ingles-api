@@ -49,6 +49,13 @@ jwt:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+  # Refresh token em cookie httpOnly: exige HTTPS em produção (TLS no proxy).
+  # Para frontend em domínio diferente do backend, defina REFRESH_COOKIE_SAMESITE=None.
+  auth:
+    refresh-cookie:
+      secure: true
+      same-site: ${REFRESH_COOKIE_SAMESITE:Lax}
+      domain: ${REFRESH_COOKIE_DOMAIN:}
 
 server:
   port: ${PORT:8080}

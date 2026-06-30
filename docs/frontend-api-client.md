@@ -52,17 +52,33 @@ npx @openapitools/openapi-generator-cli generate \
 ## Uso do client (exemplo)
 
 ```ts
-import { Configuration, CurriculumApi, ProgressApi } from "@/api/generated";
+import { Configuration, CurriculumApi } from "@/api/generated";
+
+// O access token (curto) é mantido em memória pelo SPA.
+let accessToken = "";
 
 const config = new Configuration({
   basePath: import.meta.env.VITE_API_BASE_URL, // ex.: http://localhost:8080
-  accessToken: () => localStorage.getItem("accessToken") ?? "",
+  accessToken: () => accessToken,
+  // ESSENCIAL: envia/recebe o cookie httpOnly do refresh token.
+  credentials: "include",
 });
 
 const curriculum = new CurriculumApi(config);
 const { data } = await curriculum.listModules({ page: 0, size: 20 });
 //      ^ tipado: ApiResponseListModuleSummary { data: ModuleSummary[]; meta }
 ```
+
+### Fluxo de autenticação (P1.5)
+
+- `POST /auth/login` e `/register` retornam o **access token no corpo** (guardar só em
+  memória) e setam o **refresh token em cookie `httpOnly`** (o JS não lê — proteção XSS).
+- Ao receber `401`, chamar `POST /auth/refresh` **sem corpo** (o navegador envia o cookie):
+  retorna um novo access token e rotaciona o cookie. Refresh reutilizado → `401`.
+- `POST /auth/logout` revoga as sessões e limpa o cookie.
+- Todas as chamadas precisam de `credentials: "include"` para o cookie viajar; o backend
+  já responde com `Access-Control-Allow-Credentials: true`. O cookie usa `SameSite=Lax`
+  por padrão (mitiga CSRF same-site); deploy cross-domain exige `SameSite=None` + CSRF.
 
 ## Regras de manutenção
 
