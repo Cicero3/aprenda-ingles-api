@@ -15,7 +15,9 @@ version = "0.0.1-SNAPSHOT"
 
 // Sobe o Testcontainers acima do gerenciado pelo Spring Boot 3.3 (1.19.8 -> docker-java 3.3.6),
 // cujo docker-java é incompatível com o proxy de named-pipe do Docker Desktop recente (HTTP 400 em /info).
-extra["testcontainers.version"] = "1.20.6"
+// 1.20.6 ainda falhava contra o engine do Docker Desktop 29 (API 1.54); 1.21.x traz docker-java
+// novo o suficiente para negociar a API e completar o handshake do named pipe.
+extra["testcontainers.version"] = "1.21.3"
 
 java {
     toolchain {
