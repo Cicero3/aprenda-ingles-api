@@ -38,9 +38,10 @@ class SubmitAttemptsUseCase(
     /**
      * Grava tentativas + progresso da lição + XP em uma única transação (CLAUDE.md §3.4).
      *
-     * Limitação conhecida (MVP): XP é creditado por acerto a cada submissão, sem
-     * idempotência — reenviar a mesma lição farmaria XP. Anti-farming fica para fase
-     * posterior (creditar só no primeiro acerto de cada exercício).
+     * Anti-farming: XP é creditado SOMENTE no primeiro acerto de cada exercício — entre
+     * submissões (consulta acertos anteriores) e dentro do próprio lote. Re-fazer a lição
+     * ainda registra a tentativa e atualiza bestScore, mas não re-credita XP de exercícios
+     * já acertados. A pontuação (currentScore/bestScore) reflete o lote, independente do XP.
      */
     @Transactional
     fun execute(userId: UUID, request: SubmitAttemptsRequest): SubmitAttemptsResponse {
@@ -48,6 +49,13 @@ class SubmitAttemptsUseCase(
         val results = mutableListOf<AttemptResult>()
         var correctCount = 0
         var totalXp = 0
+
+        // Exercícios já acertados antes deste lote: não rendem XP de novo.
+        // O set também serve para deduplicar acertos repetidos DENTRO do lote.
+        val batchExerciseIds = request.attempts.map { it.exerciseId }.toSet()
+        val alreadyAwarded = attemptRepository
+            .findCorrectlyAnsweredExerciseIds(userId, batchExerciseIds)
+            .toMutableSet()
 
         for (item in request.attempts) {
             val exercise = curriculumCatalog.findActiveExercise(item.exerciseId)
@@ -63,8 +71,13 @@ class SubmitAttemptsUseCase(
                 correctAnswer = exercise.correctAnswer,
                 userAnswer = item.userAnswer
             )
-            val xpEarned = if (isCorrect) XP_PER_CORRECT else 0
             if (isCorrect) correctCount++
+
+            // Credita só na PRIMEIRA vez que este exercício é acertado.
+            // `add` retorna true apenas quando o id ainda não estava no set (short-circuit
+            // garante que só mexemos no set em acertos).
+            val awardXp = isCorrect && alreadyAwarded.add(exercise.id)
+            val xpEarned = if (awardXp) XP_PER_CORRECT else 0
             totalXp += xpEarned
 
             attemptRepository.save(

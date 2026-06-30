@@ -161,6 +161,61 @@ class CurriculumProgressFlowIT : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should not re-award xp when redoing already-correct exercises`() {
+        val token = registerAndGetToken()
+
+        // 1ª submissão: fib errado ("is") -> 3/4 corretos -> 30 XP.
+        val firstTry = """
+            {
+              "lessonId": "$lessonId",
+              "attempts": [
+                { "exerciseId": "$exMcHeIs", "userAnswer": { "selected_index": 2 } },
+                { "exerciseId": "$exFibAre", "userAnswer": { "text": "is" } },
+                { "exerciseId": "$exMcItIs", "userAnswer": { "selected_index": 1 } },
+                { "exerciseId": "$exTr", "userAnswer": { "text": "i am a teacher" } }
+              ]
+            }
+        """.trimIndent()
+        mockMvc.perform(
+            post("/api/v1/attempts").header("Authorization", "Bearer $token")
+                .contentType(MediaType.APPLICATION_JSON).content(firstTry)
+        ).andExpect(status().isOk)
+
+        mockMvc.perform(get("/api/v1/users/me/progress").header("Authorization", "Bearer $token"))
+            .andExpect(jsonPath("$.data.totalXp").value(30))
+
+        // 2ª submissão: agora TODOS corretos (fib = "are").
+        val secondTry = """
+            {
+              "lessonId": "$lessonId",
+              "attempts": [
+                { "exerciseId": "$exMcHeIs", "userAnswer": { "selected_index": 2 } },
+                { "exerciseId": "$exFibAre", "userAnswer": { "text": "are" } },
+                { "exerciseId": "$exMcItIs", "userAnswer": { "selected_index": 1 } },
+                { "exerciseId": "$exTr", "userAnswer": { "text": "I am a teacher." } }
+              ]
+            }
+        """.trimIndent()
+        mockMvc.perform(
+            post("/api/v1/attempts").header("Authorization", "Bearer $token")
+                .contentType(MediaType.APPLICATION_JSON).content(secondTry)
+        )
+            .andExpect(status().isOk)
+            // os 3 já acertados antes NÃO rendem XP; só o fib recém-acertado (10).
+            .andExpect(jsonPath("$.data.results[0].xpEarned").value(0))
+            .andExpect(jsonPath("$.data.results[1].xpEarned").value(10))
+            .andExpect(jsonPath("$.data.results[2].xpEarned").value(0))
+            .andExpect(jsonPath("$.data.results[3].xpEarned").value(0))
+            // 4/4 -> 100 -> mastered
+            .andExpect(jsonPath("$.data.lessonProgress.currentScore").value(100.0))
+            .andExpect(jsonPath("$.data.lessonProgress.status").value("mastered"))
+
+        // XP total: 30 (1ª) + 10 (fib recém-acertado) = 40, não 70.
+        mockMvc.perform(get("/api/v1/users/me/progress").header("Authorization", "Bearer $token"))
+            .andExpect(jsonPath("$.data.totalXp").value(40))
+    }
+
+    @Test
     fun `should return 404 for unknown lesson`() {
         val token = registerAndGetToken()
         mockMvc.perform(
