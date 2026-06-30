@@ -9,5 +9,5 @@ import java.util.UUID
 interface ModuleRepository : JpaRepository<Module, UUID> {
     fun findByIsPublishedTrueOrderByOrderIndexAsc(): List<Module>
 
-    fun findByIsPublishedTrue(pageable: Pageable): Page<Module>
+    fun findByIsPublishedTrueOrderByOrderIndexAsc(pageable: Pageable): Page<Module>
 }

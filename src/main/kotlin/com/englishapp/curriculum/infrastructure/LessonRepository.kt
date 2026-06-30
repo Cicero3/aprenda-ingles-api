@@ -9,7 +9,10 @@ import java.util.UUID
 interface LessonRepository : JpaRepository<Lesson, UUID> {
     fun findByModuleIdAndIsPublishedTrueOrderByOrderIndexAsc(moduleId: UUID): List<Lesson>
 
-    fun findByModuleIdAndIsPublishedTrue(moduleId: UUID, pageable: Pageable): Page<Lesson>
+    fun findByModuleIdAndIsPublishedTrueOrderByOrderIndexAsc(moduleId: UUID, pageable: Pageable): Page<Lesson>
+
+    /** Lições publicadas de vários módulos numa só query (evita N+1 ao montar a lista de módulos). */
+    fun findByModuleIdInAndIsPublishedTrue(moduleIds: Collection<UUID>): List<Lesson>
 
     fun findByIdAndIsPublishedTrue(id: UUID): Lesson?
 }
