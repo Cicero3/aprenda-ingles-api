@@ -1,10 +1,21 @@
--- V999__seed_module_1.sql
+-- R__seed_module_1.sql  (migration REPETÍVEL do Flyway)
 -- Seed completo do Módulo 1 (Verbo TO BE) para dev/testes.
 -- Baseado no roteiro "O Mestre dos Disfarces", fatiado em 5 lições para
 -- reduzir carga cognitiva (A1 não empilha 3 tempos verbais numa aula só).
 --
+-- POR QUE REPETÍVEL (R__): mudanças de conteúdo NÃO quebram o boot. Migrations
+-- versionadas (V) validam checksum e falham se o arquivo muda após aplicado; uma
+-- repetível apenas RE-EXECUTA quando seu checksum muda. Roda após as V e fica só
+-- em dev/teste (prod não carrega db/seed).
+--
+-- Estratégia de conflito:
+--   * módulos e lições: ON CONFLICT DO UPDATE (upsert) — editar título/teoria
+--     reflete no DB na próxima subida, sem reset.
+--   * exercícios: ON CONFLICT DO NOTHING — exercícios são IMUTÁVEIS após publicação
+--     (CLAUDE.md §3.2). Para alterar um exercício, crie uma nova versão (novo id).
+--
 -- Convenções aplicadas:
---   * UUIDs fixos e legíveis (referenciáveis por testes). Idempotente via ON CONFLICT.
+--   * UUIDs fixos e legíveis (referenciáveis por testes).
 --   * question_payload NÃO contém o gabarito (é exposto ao aluno em GET /lessons/{id}).
 --     O acerto é resolvido por correct_answer.text + normalização case-insensitive
 --     do Grader, então não precisamos (nem devemos) repetir a resposta no payload.
@@ -29,7 +40,9 @@ VALUES (
     'A1',
     1,
     true
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    title = EXCLUDED.title, description = EXCLUDED.description, level = EXCLUDED.level,
+    order_index = EXCLUDED.order_index, is_published = EXCLUDED.is_published;
 
 -- =====================================================================
 -- LIÇÃO 1 — Pronomes + Presente (am/is/are)
@@ -83,7 +96,10 @@ VALUES (
       "audio_urls": { "intro": "https://cdn.app.com/m1_l1_intro.mp3" }
     }'::jsonb,
     true
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    module_id = EXCLUDED.module_id, title = EXCLUDED.title, order_index = EXCLUDED.order_index,
+    estimated_minutes = EXCLUDED.estimated_minutes, content_jsonb = EXCLUDED.content_jsonb,
+    is_published = EXCLUDED.is_published, updated_at = now();
 
 -- L1 ex1: multiple_choice — IS para terceira pessoa
 INSERT INTO exercises (id, lesson_id, order_index, type, question_payload, correct_answer, feedback_on_error, version, is_active)
@@ -207,7 +223,10 @@ VALUES (
       "audio_urls": { "intro": "https://cdn.app.com/m1_l2_intro.mp3" }
     }'::jsonb,
     true
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    module_id = EXCLUDED.module_id, title = EXCLUDED.title, order_index = EXCLUDED.order_index,
+    estimated_minutes = EXCLUDED.estimated_minutes, content_jsonb = EXCLUDED.content_jsonb,
+    is_published = EXCLUDED.is_published, updated_at = now();
 
 -- L2 ex1: fill_blank — posição do NOT (o erro nº1 do brasileiro)
 INSERT INTO exercises (id, lesson_id, order_index, type, question_payload, correct_answer, feedback_on_error, version, is_active)
@@ -304,7 +323,10 @@ VALUES (
       "audio_urls": { "intro": "https://cdn.app.com/m1_l3_intro.mp3" }
     }'::jsonb,
     true
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    module_id = EXCLUDED.module_id, title = EXCLUDED.title, order_index = EXCLUDED.order_index,
+    estimated_minutes = EXCLUDED.estimated_minutes, content_jsonb = EXCLUDED.content_jsonb,
+    is_published = EXCLUDED.is_published, updated_at = now();
 
 -- L3 ex1: multiple_choice — WERE para plural
 INSERT INTO exercises (id, lesson_id, order_index, type, question_payload, correct_answer, feedback_on_error, version, is_active)
@@ -402,7 +424,10 @@ VALUES (
       "audio_urls": { "intro": "https://cdn.app.com/m1_l4_intro.mp3" }
     }'::jsonb,
     true
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    module_id = EXCLUDED.module_id, title = EXCLUDED.title, order_index = EXCLUDED.order_index,
+    estimated_minutes = EXCLUDED.estimated_minutes, content_jsonb = EXCLUDED.content_jsonb,
+    is_published = EXCLUDED.is_published, updated_at = now();
 
 -- L4 ex1: fill_blank — will be invariável
 INSERT INTO exercises (id, lesson_id, order_index, type, question_payload, correct_answer, feedback_on_error, version, is_active)
@@ -487,7 +512,10 @@ VALUES (
       "audio_urls": { "intro": "https://cdn.app.com/m1_l5_intro.mp3" }
     }'::jsonb,
     true
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    module_id = EXCLUDED.module_id, title = EXCLUDED.title, order_index = EXCLUDED.order_index,
+    estimated_minutes = EXCLUDED.estimated_minutes, content_jsonb = EXCLUDED.content_jsonb,
+    is_published = EXCLUDED.is_published, updated_at = now();
 
 -- L5 ex1: multiple_choice — distinguir tempo certo
 INSERT INTO exercises (id, lesson_id, order_index, type, question_payload, correct_answer, feedback_on_error, version, is_active)
