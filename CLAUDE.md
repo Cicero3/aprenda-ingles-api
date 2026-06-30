@@ -76,7 +76,7 @@ Aplicativo de ensino de inglês com:
 
 ### 3.5 Validação
 - Validar entrada com `@Valid` + Bean Validation (`jakarta.validation`)
-- Validar `question_payload` (JSONB) via JSON Schema ou classes Kotlin data no service
+- Validar `question_payload` (JSONB) via `ExercisePayloadValidator` (`common/content`). O contrato por tipo está em `docs/content-contract.md` e é travado no CI por `ContentIntegrityIT`.
 - Nunca confiar em dados vindos do frontend
 
 ---
