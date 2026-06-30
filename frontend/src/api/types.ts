@@ -65,6 +65,25 @@ export interface ExercisePublic {
   payload: Record<string, unknown>;
 }
 
+// Shapes do payload por tipo (ver docs/content-contract.md). Usados na renderização.
+export interface McOption {
+  index: number;
+  text: string;
+}
+export interface McPayload {
+  prompt: string;
+  audio_url?: string;
+  options: McOption[];
+}
+export interface FillBlankPayload {
+  sentence_template: string;
+  hint?: string;
+  audio_url?: string;
+}
+export interface TranslationPayload {
+  source_text: string;
+}
+
 export interface LessonDetail {
   id: string;
   moduleId: string;

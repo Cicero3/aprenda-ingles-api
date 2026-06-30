@@ -5,7 +5,11 @@ import { myProgress } from '../api/progress';
 import type { ModuleSummary, ProgressDashboard } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 
-export function ModulesDashboard() {
+export function ModulesDashboard({
+  onOpenModule,
+}: {
+  onOpenModule: (moduleId: string, title: string) => void;
+}) {
   const { user, logout } = useAuth();
   const [modules, setModules] = useState<ModuleSummary[]>([]);
   const [dashboard, setDashboard] = useState<ProgressDashboard | null>(null);
@@ -62,9 +66,10 @@ export function ModulesDashboard() {
 
         <div className="grid gap-4 md:grid-cols-2">
           {modules.map((m) => (
-            <article
+            <button
               key={m.id}
-              className="rounded-2xl border border-[#3C4043] bg-[#1E1E1F] p-6 transition hover:border-purple-500/40"
+              onClick={() => onOpenModule(m.id, m.title)}
+              className="rounded-2xl border border-[#3C4043] bg-[#1E1E1F] p-6 text-left transition hover:border-purple-500/40"
             >
               <div className="mb-3 flex items-center justify-between">
                 <span className="rounded-md bg-blue-500/10 px-2 py-0.5 text-xs font-bold text-blue-300">
@@ -85,7 +90,7 @@ export function ModulesDashboard() {
                 />
               </div>
               <p className="mt-1 text-right text-xs text-[#9AA0A6]">{m.progressPercent}%</p>
-            </article>
+            </button>
           ))}
         </div>
       </main>
